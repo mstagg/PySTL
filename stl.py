@@ -31,7 +31,40 @@ class STL():
     _yNeg = 0
     _zPos = 0
     _zNeg = 0
+    
+    def GetNormals(self):
+        return self._normals
+    
+    def GetVertices(self):
+        return self._vertices
         
+    def GetTriangles(self):
+        return self._triangles
+        
+    def GetByteCount(self):
+        return self._bytecount
+    
+    def GetCentroid(self):
+        return self._centroid
+    
+    def GetNumberOfTriangles(self):
+        return self._numberOfTriangles
+        
+    def GetVolume(self):
+        return self._volume
+        
+    def GetWidth(self):
+        return self._width
+        
+    def GetHeight(self):
+        return self._height
+        
+    def GetDepth(self):
+        return self._depth
+        
+    def GetDimensions(self):
+        return (self._width, self._height, self._depth)
+    
     # Constructor
     # Calculates all relevant dimensions
     def __init__(self, filepath):  
@@ -81,7 +114,7 @@ class STL():
     
     # Averages the previous centroid with a new vertex to update the centroid position
     def _calculateCentroid(self, vertex):
-        if(self._centroid == (0, 0 ,0):
+        if(self._centroid == (0, 0 ,0)):
             self._centroid = vertex
         else:
             newCentroid = (((self._centroid[0] + vertex[0]) / 2), ((self._centroid[1] + vertex[1]) / 2), ((self._centroid[2] + vertex[2]) / 2))
@@ -122,10 +155,13 @@ class STL():
         vertex3 = self._readVertex(self._unpack("<3f", 12))
         attrByteCount  = self._unpack("<h", 2)
         
+        newTriangle = (vertex1, vertex2, vertex3)
+        
         self._normals.append(normalVector)
         self._vertices.append(vertex1)
         self._vertices.append(vertex2)
         self._vertices.append(vertex3)
+        self._triangles.append(newTriangle)
         self._bytecount.append(attrByteCount[0])
         self._signedVolumeOfTriangle(vertex1, vertex2, vertex3)
     
