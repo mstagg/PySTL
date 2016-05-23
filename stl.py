@@ -16,6 +16,8 @@ class STL():
     _vertices = []
     _triangles = []
     _bytecount = []
+    _centroid = (0, 0, 0)
+    
     
     _numberOfTriangles = 0
     _volume = 0
@@ -77,6 +79,15 @@ class STL():
         s = self._file.read(length)
         return struct.unpack(format, s)
     
+    # Averages the previous centroid with a new vertex to update the centroid position
+    def _calculateCentroid(self, vertex):
+        if(self._centroid == (0, 0 ,0):
+            self._centroid = vertex
+        else:
+            newCentroid = (((self._centroid[0] + vertex[0]) / 2), ((self._centroid[1] + vertex[1]) / 2), ((self._centroid[2] + vertex[2]) / 2))
+            self._centroid = newCentroid
+    
+    # Reads a single vertex, updating the centroid and cartesian limits 
     def _readVertex(self, vertex):
         if(vertex[0] >= 0):
             if(vertex[0] > self._xPos):
@@ -98,7 +109,8 @@ class STL():
         else:
             if(vertex[2] < self._zNeg):
                 self._zNeg = vertex[2]
-                
+        
+        self._calculateCentroid(vertex)
         return vertex
     
     # Reads all vertices relevant to a single triangle
