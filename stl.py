@@ -1,7 +1,7 @@
 '''
 STL Binary File Class
 Author: Matthew Stagg
-Description: Class to interface with stl files in python
+Description: Class to interface with stl files in python. Provides basic geometric analysis of STL files.
 Based on work by Mar Canet's open source project at: https://github.com/mcanet/STL-Volume-Model-Calculator
 '''
 
@@ -32,6 +32,9 @@ class STL():
     _zPos = 0
     _zNeg = 0
     
+    #### Public Functions ####
+    
+    # Accessors
     def GetNormals(self):
         return self._normals
     
@@ -64,6 +67,14 @@ class STL():
         
     def GetDimensions(self):
         return (self._width, self._height, self._depth)
+    
+    def IsFailed(self):
+        return self._failed
+    
+    def GetError(self):
+        return self._errorCode
+    
+    #### Private Functions ####
     
     # Constructor
     # Calculates all relevant dimensions
@@ -114,21 +125,25 @@ class STL():
     
     # Averages the previous centroid with a new vertex to update the centroid position
     def _calculateCentroid(self, vertex):
+        # If centroid is in initial state...
         if(self._centroid == (0, 0 ,0)):
             self._centroid = vertex
+        # Otherwise...
         else:
             newCentroid = (((self._centroid[0] + vertex[0]) / 2), ((self._centroid[1] + vertex[1]) / 2), ((self._centroid[2] + vertex[2]) / 2))
             self._centroid = newCentroid
     
     # Reads a single vertex, updating the centroid and cartesian limits 
     def _readVertex(self, vertex):
+        # Reads X
         if(vertex[0] >= 0):
             if(vertex[0] > self._xPos):
                 self._xPos = vertex[0]
         else:
             if(vertex[0] < self._xNeg):
                 self._xNeg = vertex[0]
-                
+               
+        # Reads Y
         if(vertex[1] >= 0):
             if(vertex[1] > self._yPos):
                 self._yPos = vertex[1]
@@ -136,6 +151,7 @@ class STL():
             if(vertex[1] < self._yNeg):
                 self._yNeg = vertex[1]
                 
+        # Reads Z
         if(vertex[2] >= 0):
             if(vertex[2] > self._zPos):
                 self._zPos = vertex[2]
@@ -143,20 +159,22 @@ class STL():
             if(vertex[2] < self._zNeg):
                 self._zNeg = vertex[2]
         
+        # Update centroid
         self._calculateCentroid(vertex)
         return vertex
     
     # Reads all vertices relevant to a single triangle
     # Relevant binary STL file information: https://en.wikipedia.org/wiki/STL_(file_format)#Binary_STL
     def _readTriangle(self):
+        # Read bianry data from file
         normalVector  = self._unpack("<3f", 12)
         vertex1 = self._readVertex(self._unpack("<3f", 12))
         vertex2 = self._readVertex(self._unpack("<3f", 12))
         vertex3 = self._readVertex(self._unpack("<3f", 12))
         attrByteCount  = self._unpack("<h", 2)
         
+        # Store information and do calculations
         newTriangle = (vertex1, vertex2, vertex3)
-        
         self._normals.append(normalVector)
         self._vertices.append(vertex1)
         self._vertices.append(vertex2)
@@ -166,7 +184,7 @@ class STL():
         self._signedVolumeOfTriangle(vertex1, vertex2, vertex3)
     
     # Calculate volume of the 3D mesh using tetrahedron volume in m3
-    # based in: http://stackoverflow.com/questions/1406029/how-to-calculate-the-volume-of-a-3d-mesh-object-the-surface-of-which-is-made-up
+    # Based on: http://stackoverflow.com/questions/1406029/how-to-calculate-the-volume-of-a-3d-mesh-object-the-surface-of-which-is-made-up
     def _signedVolumeOfTriangle(self, vertex1, vertex2, vertex3):
         vector321 = vertex3[0] * vertex2[1] * vertex1[2]
         vector231 = vertex2[0] * vertex3[1] * vertex1[2]
